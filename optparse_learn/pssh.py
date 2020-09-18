@@ -8,7 +8,8 @@ def input_args():
     # print parser.usage
     # # print parser.option_list
     # # print parser.option_class
-    parser.add_argument('-i', '--host', dest='hostname', default='192.168.66.100', help='target host or host_file')
+    parser.add_argument('-i', '--host', action='append',dest='hostname',help='host list') #-i host1 -i host2
+    parser.add_argument('-f', '--file', dest='file', default=None, help='target host_file')
     parser.add_argument('-u', '--user', dest='username', default='root', help='username')
     parser.add_argument('-p', '--password', dest='password', default='123456', help='password')
     parser.add_argument('-P', '--port', dest='port',default=22, help='ssh_port of target host')
@@ -32,16 +33,38 @@ if __name__ == '__main__':
     opt,arg_list=parser.parse_known_args() # arg_list为列表
     # client=cct(**opt) # opt是个instance相当于对象,看着跟字典一样,所以不能这样打散
     # print opt,type(opt),arg_list,type(arg_list)
+    # print opt.hostname
     cmd='' # arg_list是一个列表,需要拼接成字符串,当做命令串给client处理
     for i in arg_list:
         cmd+='%s '%i
     # cmd='ls -l'
-    client=cct(hostname=opt.hostname,username=opt.username,password=opt.password,port=opt.port)
-    # client=cct(hostname='192.168.66.100',username=opt.username,password='123456',port=opt.port)
-    # client=cct(hostname='192.168.66.100',username='root',password='123456',port=22)
-    stdin, stdout, stderr = client.exec_command(cmd)
-    if stderr:
-        print stderr.read().decode('utf-8')
-    print stdout.read().decode('utf-8')
-    client.close()
+    # 处理-i后的主机列表
+    if opt.hostname:
+        for hostname in opt.hostname:
+            client = cct(hostname=hostname, username=opt.username, password=opt.password, port=opt.port)
+            # client=cct(hostname='192.168.66.100',username=opt.username,password='123456',port=opt.port)
+            # client=cct(hostname='192.168.66.100',username='root',password='123456',port=22)
+            print hostname
+            stdin, stdout, stderr = client.exec_command(cmd)
+            if stderr:
+                print stderr.read().decode('utf-8')
+            print stdout.read().decode('utf-8')
+            client.close()
+
+    # 处理-f后的主机文件
+    if opt.file:
+        with open(opt.file,'r') as f:
+            for hostname in f:
+                if hostname:
+                    hostname=hostname.strip()
+                    client = cct(hostname=hostname, username=opt.username, password=opt.password, port=opt.port)
+                    # client=cct(hostname='192.168.66.100',username=opt.username,password='123456',port=opt.port)
+                    # client=cct(hostname='192.168.66.100',username='root',password='123456',port=22)
+                    print hostname
+                    stdin, stdout, stderr = client.exec_command(cmd)
+                    if stderr:
+                        print stderr.read().decode('utf-8')
+                    print stdout.read().decode('utf-8')
+                    client.close()
+
 

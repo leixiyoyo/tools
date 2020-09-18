@@ -1,1 +1,2 @@
 经常会频繁使用的小工具
+1. bssh.py 批量远程执行命令工具,用法python bssh.py -i host [-f host_file] -u username -p password -P port
